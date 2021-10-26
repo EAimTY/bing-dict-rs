@@ -1,0 +1,18 @@
+[package]
+name = "bing-dict"
+description = "Use Bing Dict to translate from Chinese to English or from English to Chinese"
+version = "0.1.0"
+authors = ["EAimTY <ea.imty@gmail.com>"]
+edition = "2021"
+readme = "README.md"
+license = "GPL-3.0-or-later"
+repository = "https://github.com/EAimTY/bing-dict-rs"
+
+[dependencies]
+html-escape = "0.2"
+reqwest = { version = "0.11", default-features = false, features = ["rustls-tls"] }
+subslice = "0.2"
+thiserror = "1.0"
+
+[dev-dependencies]
+tokio = { version = "1.12", features = ["rt-multi-thread", "macros"] }
