@@ -1,7 +1,7 @@
 [package]
 name = "bing-dict"
 description = "Use Bing Dict to translate from Chinese to English or from English to Chinese"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["EAimTY <ea.imty@gmail.com>"]
 edition = "2021"
 readme = "README.md"

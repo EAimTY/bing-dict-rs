@@ -20,16 +20,21 @@ use thiserror::Error;
 ///     );
 /// }
 /// ```
-pub async fn translate(input: &str) -> Result<Option<String>, Error> {
-    let url = format!("https://www.bing.com/dict/search?mkt=zh-cn&q={}", input);
+pub async fn translate<S: AsRef<str>>(input: S) -> Result<Option<String>, Error> {
+    let url = format!(
+        "https://www.bing.com/dict/search?mkt=zh-cn&q={}",
+        input.as_ref()
+    );
 
     let response = reqwest::get(url).await?.bytes().await?;
 
     if let Some(start) = response.find(br#"<meta name="description" content=""#) {
         if let Some(end) = response[start..].find(br#"" />"#) {
             if response.len() > start + 40 {
-                if &response[start + 34..start + 40] != b"\xE8\xAF\x8D\xE5\x85\xB8" {
-                    let input_length = html_escape::encode_text(input).len();
+                if &response[start + 34..start + 40] != b"\xE8\xAF\x8D\xE5\x85\xB8"
+                    && &response[start + 34..start + 61] != b"\xE5\xBF\x85\xE5\xBA\x94\xE8\xAF\x8D\xE5\x85\xB8\xEF\xBC\x8C\xE4\xB8\xBA\xE6\x82\xA8\xE6\x8F\x90\xE4\xBE\x9B"
+                {
+                    let input_length = html_escape::encode_text(&input).len();
 
                     return Ok(Some(
                         str::from_utf8(&response[start + input_length + 70..start + end])?
