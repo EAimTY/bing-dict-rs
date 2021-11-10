@@ -1,19 +1,25 @@
 # bing-dict
 
-Use Bing Dict to translate from Chinese to English or from English to Chinese.
+Use Bing Dictionary to translate words and phrases from Chinese to English or English to Chinese.
 
 https://crates.io/crates/bing-dict
+
+## Feature
+
+- Easy to use
+- Parsed paraphrase
+- Regex-free
+
+This crate uses [reqwest](https://github.com/seanmonstar/reqwest) to reach Bing Dictionary, so it can be well integrated into existing projects that use reqwest.
 
 ## Example
 
 ```rust
 #[tokio::main]
 async fn main() {
-    let result = bing_dict::translate("dictionary").await.unwrap();
-    assert_eq!(
-        Some(String::from("美[ˈdɪkʃəˌneri]，英[ˈdɪkʃən(ə)ri]，n. 词典；字典；辞书；专业术语大全； 网络释义： 辞典；字典中管理；字典对象；")),
-        result,
-    );
+    let result = bing_dict::translate("dictionary").await.unwrap().unwrap();
+    println!("{:?}", result);
+    println!("{}", result.to_string());
 }
 ```
 
