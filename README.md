@@ -1,16 +1,10 @@
 # bing-dict
 
-Use Bing Dictionary to translate words and phrases from Chinese to English or English to Chinese.
+Use Bing Dictionary to translate words and phrases between English and Chinese
 
-https://crates.io/crates/bing-dict
-
-## Feature
-
-- Easy to use
-- Parsed paraphrase
-- Regex-free
-
-This crate uses [reqwest](https://github.com/seanmonstar/reqwest) to reach Bing Dictionary, so it can be well integrated into existing projects that use reqwest.
+[![Version](https://img.shields.io/crates/v/bing-dict.svg?style=flat)](https://crates.io/crates/bing-dict)
+[![Documentation](https://img.shields.io/badge/docs-release-brightgreen.svg?style=flat)](https://docs.rs/bing-dict)
+[![License](https://img.shields.io/crates/l/bing-dict.svg?style=flat)](https://github.com/EAimTY/bing-dict-rs/blob/master/LICENSE)
 
 ## Example
 
@@ -18,8 +12,7 @@ This crate uses [reqwest](https://github.com/seanmonstar/reqwest) to reach Bing 
 #[tokio::main]
 async fn main() {
     let result = bing_dict::translate("dictionary").await.unwrap().unwrap();
-    println!("{:?}", result);
-    println!("{}", result.to_string());
+    println!("{result}");
 }
 ```
 

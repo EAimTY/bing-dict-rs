@@ -1,9 +1,12 @@
 [package]
 name = "bing-dict"
-description = "Use Bing Dictionary to translate words and phrases from Chinese to English or English to Chinese"
-version = "0.2.0"
+description = "Use Bing Dictionary to translate words and phrases between English and Chinese"
+categories = ["internationalization", "localization"]
+keywords = ["dictionary", "bing", "dict"]
+version = "0.3.0"
 authors = ["EAimTY <ea.imty@gmail.com>"]
 edition = "2021"
+rust-version = "1.59"
 readme = "README.md"
 license = "GPL-3.0-or-later"
 repository = "https://github.com/EAimTY/bing-dict-rs"
@@ -15,4 +18,4 @@ subslice = "0.2"
 thiserror = "1.0"
 
 [dev-dependencies]
-tokio = { version = "1.13", features = ["rt-multi-thread", "macros"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }

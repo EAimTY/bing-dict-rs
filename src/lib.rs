@@ -1,74 +1,44 @@
-//! # bing-dict
-//!
-//! Use Bing Dictionary to translate words and phrases from Chinese to English or English to Chinese.
-//!
-//! # Examples
-//!
-//! ```
-//! #[tokio::main]
-//! async fn main() {
-//!     let result = bing_dict::translate("dictionary").await.unwrap().unwrap();
-//!     println!("{:?}", result);
-//!     println!("{}", result.to_string());
-//! }
-//! ```
+#![doc = include_str!("../README.md")]
 
 use std::{fmt, str};
 use subslice::SubsliceExt;
 use thiserror::Error;
 
-/// Translate a word / phrase using Bing Dictionary. Return `Ok(None)` if the word can not be found.
-///
-/// # Examples
-///
-/// ```
-/// #[tokio::main]
-/// async fn main() {
-///     let result = bing_dict::translate("dictionary").await.unwrap().unwrap();
-///     println!("{:?}", result);
-/// }
-/// ```
-pub async fn translate<S: AsRef<str>>(input: S) -> Result<Option<Paraphrase>, Error> {
-    let url = format!(
-        "https://www.bing.com/dict/search?mkt=zh-cn&q={}",
-        input.as_ref()
-    );
+/// Translate a word / phrase. Return `Ok(None)` if the word can not be found in Bing Dictionary
+pub async fn translate(input: &str) -> Result<Option<Paraphrase>, Error> {
+    let url = format!("https://www.bing.com/dict/search?mkt=zh-cn&q={input}");
 
-    let response = reqwest::get(url).await?.bytes().await?;
+    let resp = reqwest::get(url).await?.bytes().await?;
 
-    if let Some(start) = response.find(br#"<meta name="description" content=""#) {
-        let start = start + 34;
-        if let Some(end) = response[start..].find(br#"" />"#) {
-            let description = &response[start..start + end];
-            let preamble_len = html_escape::encode_text(&input).len() + 36;
+    let desc = resp
+        .find(br#"<meta name="description" content=""#)
+        .and_then(|start| {
+            resp[start + 34..]
+                .find(br#"" />"#)
+                .map(|end| &resp[start + 34..start + end + 34])
+        })
+        .ok_or(Error::PageError)?;
 
-            if description.starts_with(b"\xE5\xBF\x85\xE5\xBA\x94\xE8\xAF\x8D\xE5\x85\xB8\xE4\xB8\xBA\xE6\x82\xA8\xE6\x8F\x90\xE4\xBE\x9B")
-                && description.len() > preamble_len
-            {
-                let paraphrase = str::from_utf8(&description[preamble_len..])?
-                    .trim();
+    let input_len = html_escape::encode_text(&input).len() + 36;
 
-                return Ok(Some(Paraphrase::parse(input.as_ref(), paraphrase)));
-            } else {
-                return Ok(None);
-            }
-        }
+    if desc.len() > input_len && desc.starts_with(b"\xE5\xBF\x85\xE5\xBA\x94\xE8\xAF\x8D\xE5\x85\xB8\xE4\xB8\xBA\xE6\x82\xA8\xE6\x8F\x90\xE4\xBE\x9B") {
+        let res = str::from_utf8(&desc[input_len..])?.trim();
+        Ok(Some(Paraphrase::parse(input, res)))
+    } else {
+        Ok(None)
     }
-
-    Err(Error::PageError)
 }
 
-/// The paraphrase of a word / phrase.
-/// You can read its fields manually or just call `.to_string()` to get the paraphrase as a string.
+/// The paraphrase of a word / phrase
 #[derive(Debug, Clone)]
 pub struct Paraphrase {
-    pub query: String,
+    pub input: String,
     pub pronunciations: Vec<String>,
     pub genders: Vec<String>,
 }
 
 impl Paraphrase {
-    pub(crate) fn parse(query: &str, paraphrase: &str) -> Self {
+    fn parse(input: &str, paraphrase: &str) -> Self {
         let mut pronunciations = Vec::new();
         let mut genders = Vec::new();
 
@@ -83,7 +53,7 @@ impl Paraphrase {
         }
 
         Self {
-            query: query.to_owned(),
+            input: input.to_owned(),
             pronunciations,
             genders,
         }
@@ -110,17 +80,13 @@ impl fmt::Display for Paraphrase {
             String::new()
         };
 
-        write!(
-            f,
-            "{}\n{}{}",
-            self.query,
-            pronunciations,
-            self.genders_to_string()
-        )
+        let input = &self.input;
+        let genders = self.genders_to_string();
+
+        write!(f, "{input}\n{pronunciations}{genders}")
     }
 }
 
-/// The Errors that may occur
 #[derive(Error, Debug)]
 pub enum Error {
     #[error(r#"no <meta name="description" /> found in page"#)]
